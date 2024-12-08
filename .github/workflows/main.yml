@@ -18,6 +18,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y deluge
+        sudo apt install -y deluge-console 
 
     - name: Configure Deluge to not seed
       run: |
