@@ -15,6 +15,7 @@ jobs:
       - run:
           name: Install tools
           command: |
+            sudo apt update
             sudo apt install -y nodejs npm
             python -m pip install awscli
             npm install -g webtorrent-cli
