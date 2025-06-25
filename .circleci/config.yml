@@ -1,28 +1,40 @@
+version: 2.1
+
 jobs:
+  build:
+    docker:
+      - image: cimg/node:18.17
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Build project
+          command: npm run build
+
   download_and_upload:
     docker:
       - image: cimg/node:18.17
-    timeout: 30m  # set longer timeout if needed
+    timeout: 30m
     steps:
       - checkout
-
       - run:
           name: Install dependencies
           command: |
-            npm install webtorrent-cli
+            npm install --global webtorrent-cli
             sudo apt-get update
             sudo apt-get install -y python3 python3-pip
-            pip3 install requests
-
+            pip3 install requests awscli
       - run:
           name: Download torrent
           command: |
-            npx webtorrent download "magnet:?xt=urn:btih:73630FD012B6DC42C3F4B07BD7FD19138C8C9C3F&dn=Pie+to+Die+For+A+Hannah+Swensen+Mystery+2025+1080p+WEB-DL+HEVC+x265+BONE&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Fp4p.arenabg.com%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.open-internet.nl%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.demonii.si%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=udp%3A%2F%2Fdenis.stalker.upeer.me%3A6969%2Fannounce" --out ./downloads --quiet
-
+            npx webtorrent download "magnet:?xt=urn:btih:73630FD012B6DC42C3F4B07BD7FD19138C8C9C3F&dn=Pie+to+Die+For+A+Hannah+Swensen+Mystery+2025+1080p+WEB-DL+HEVC+x265+BONE" --out ./downloads --quiet
+      
       - run:
-          name: Create Python upload script
+          name: Create and execute Python upload script
           command: |
-            cat \<<'EOF' > upload_files.py
+            cat <<'EOF' > upload_files.py
             import os
             import requests
             import concurrent.futures
@@ -31,10 +43,9 @@ jobs:
 
             def upload_file(file_path):
                 filename = os.path.basename(file_path)
-                url = url_template.format(filename=filename)
                 print(f'Starting upload: {filename}')
                 with open(file_path, 'rb') as f:
-                    response = requests.post(url, headers={
+                    response = requests.post(url_template.format(filename=filename), headers={
                         'accept': 'application/json',
                         'Content-Type': 'application/octet-stream'
                     }, data=f)
@@ -53,14 +64,11 @@ jobs:
                     filename, status_code, response_data = future.result()
                     print(f'Uploaded {filename}: Status {status_code}, Response: {response_data}')
             EOF
-
-      - run:
-          name: Execute upload script
-          command: |
             python3 upload_files.py
-            
-  workflows:
+
+workflows:
   version: 2
   upload_workflow:
     jobs:
+      - build
       - download_and_upload
