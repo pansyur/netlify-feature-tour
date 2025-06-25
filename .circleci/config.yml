@@ -11,11 +11,11 @@ jobs:
             echo "This is a test file" > testfile.txt
 
       - run:
-          name: Upload file to Filebin
+          name: Upload file to Filebin with filename
           command: |
-            RESPONSE=$(curl -s -X POST --data-binary @testfile.txt https://filebin.net/)
+            RESPONSE=$(curl -s -X POST -F "file=@testfile.txt;filename=mytestfile.txt" https://filebin.net/)
             echo "File uploaded to: $RESPONSE"
-            # Optional: store URL as output
+            # Save URL for further use if needed
             echo "export UPLOAD_URL=$RESPONSE" >> $BASH_ENV
 
 workflows:
