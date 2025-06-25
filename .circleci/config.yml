@@ -16,7 +16,7 @@ jobs:
           command: |
             sudo apt update
             sudo apt install -y nodejs npm curl
-            npm install -g webtorrent-cli
+            npm install webtorrent-cli
 
       - run:
           name: Download torrent
