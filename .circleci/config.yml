@@ -16,7 +16,7 @@ jobs:
   download_and_upload:
     docker:
       - image: cimg/node:18.17
-    timeout: 1800
+    # Removed 'timeout: 30m' as per your request
     steps:
       - checkout
       - run:
@@ -30,7 +30,7 @@ jobs:
           name: Download torrent
           command: |
             npx webtorrent download "magnet:?xt=urn:btih:73630FD012B6DC42C3F4B07BD7FD19138C8C9C3F&dn=Pie+to+Die+For+A+Hannah+Swensen+Mystery+2025+1080p+WEB-DL+HEVC+x265+BONE" --out ./downloads --quiet
-      
+            
       - run:
           name: Create and execute Python upload script
           command: |
