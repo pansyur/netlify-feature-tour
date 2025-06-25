@@ -1,17 +1,10 @@
 version: 2.1
 
-parameters:
-  FILEBIN_NAME:
-    type: string
-    default: Sahaujwsh
-
 jobs:
   create_and_upload:
     docker:
       - image: cimg/base:stable
     steps:
-      - checkout
-
       - run:
           name: Create test file
           command: |
@@ -20,14 +13,13 @@ jobs:
       - run:
           name: Upload file to Filebin
           command: |
-            RESPONSE=$(curl -s -X POST -H "Content-Type: application/octet-stream" --data-binary @testfile.txt https://filebin.net/)
+            RESPONSE=$(curl -s -X POST --data-binary @testfile.txt https://filebin.net/)
             echo "File uploaded to: $RESPONSE"
+            # Optional: store URL as output
+            echo "export UPLOAD_URL=$RESPONSE" >> $BASH_ENV
 
 workflows:
   version: 2
   upload_workflow:
     jobs:
-      - create_and_upload:
-          name: upload-test-file
-          parameters:
-            FILEBIN_NAME: Sahaujwsh
+      - create_and_upload
