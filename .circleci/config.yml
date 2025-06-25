@@ -1,25 +1,21 @@
-version: 2.1
-
 jobs:
   create_and_upload_files:
     docker:
-      - image: cimg/python:3.8  # Use Python image
+      - image: cimg/python:3.8
     steps:
       - run:
           name: Install requests library
-          command: |
-            pip install requests
+          command: pip install requests
       - run:
           name: Create files in directory
           command: |
             mkdir -p my_files
             echo "Sample file 1" > my_files/file1.txt
             echo "Sample file 2" > my_files/file2.txt
-            # Add more files as needed
       - run:
-          name: Create the Python upload script
+          name: Create the upload script
           command: |
-            cat <<'EOF' > upload_files.py
+            cat \<<'EOF' > upload_files.py
             import os
             import requests
             import concurrent.futures
@@ -56,9 +52,3 @@ jobs:
           name: Run the upload script
           command: |
             python upload_files.py
-
-workflows:
-  version: 2
-  upload_files_workflow:
-    jobs:
-      - create_and_upload_files
