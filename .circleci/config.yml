@@ -16,7 +16,7 @@ jobs:
   download_and_upload:
     docker:
       - image: cimg/node:18.17
-    timeout: 30m
+    timeout: 1800
     steps:
       - checkout
       - run:
