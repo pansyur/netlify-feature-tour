@@ -1,25 +1,64 @@
 version: 2.1
 
 jobs:
-  create_and_upload:
+  create_and_upload_files:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:3.8  # Use Python image
     steps:
       - run:
-          name: Create test file
+          name: Install requests library
           command: |
-            echo "This is a test file" > testfile.txt
-
+            pip install requests
       - run:
-          name: Upload file to Filebin with filename
+          name: Create files in directory
           command: |
-            RESPONSE=$(curl -s -X POST -F "file=@testfile.txt;filename=mytestfile.txt" https://filebin.net/)
-            echo "File uploaded to: $RESPONSE"
-            # Save URL for further use if needed
-            echo "export UPLOAD_URL=$RESPONSE" >> $BASH_ENV
+            mkdir -p my_files
+            echo "Sample file 1" > my_files/file1.txt
+            echo "Sample file 2" > my_files/file2.txt
+            # Add more files as needed
+      - run:
+          name: Create the Python upload script
+          command: |
+            cat <<'EOF' > upload_files.py
+            import os
+            import requests
+            import concurrent.futures
+
+            directory = 'my_files'
+            url_template = 'https://filebin.net/Sahaujwsh/{filename}'
+
+            def upload_file(file_path):
+                filename = os.path.basename(file_path)
+                url = url_template.format(filename=filename)
+                with open(file_path, 'rb') as f:
+                    response = requests.post(url, headers={
+                        'accept': 'application/json',
+                        'Content-Type': 'application/octet-stream'
+                    }, data=f)
+                try:
+                    response_data = response.json()
+                except Exception:
+                    response_data = response.text
+                return response.status_code, filename, response_data
+
+            files_to_upload = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future_to_file = {executor.submit(upload_file, file): file for file in files_to_upload}
+                for future in concurrent.futures.as_completed(future_to_file):
+                    try:
+                        status_code, filename, response_data = future.result()
+                        print(f'File: {filename}, Status Code: {status_code}, Response: {response_data}')
+                    except Exception as e:
+                        print(f'File: {future_to_file[future]} generated an exception: {e}')
+            EOF
+      - run:
+          name: Run the upload script
+          command: |
+            python upload_files.py
 
 workflows:
   version: 2
-  upload_workflow:
+  upload_files_workflow:
     jobs:
-      - create_and_upload
+      - create_and_upload_files
