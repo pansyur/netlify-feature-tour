@@ -6,7 +6,7 @@ parameters:
     default: Sahaujwsh
 
 jobs:
-  upload_file:
+  create_and_upload:
     docker:
       - image: cimg/base:stable
     steps:
@@ -21,5 +21,13 @@ jobs:
           name: Upload file to Filebin
           command: |
             RESPONSE=$(curl -s -X POST -H "Content-Type: application/octet-stream" --data-binary @testfile.txt https://filebin.net/)
-            # The response is the URL of the uploaded file
             echo "File uploaded to: $RESPONSE"
+
+workflows:
+  version: 2
+  upload_workflow:
+    jobs:
+      - create_and_upload:
+          name: upload-test-file
+          parameters:
+            FILEBIN_NAME: Sahaujwsh
