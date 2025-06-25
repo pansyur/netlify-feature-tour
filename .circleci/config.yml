@@ -1,8 +1,20 @@
+version: 2.1
+
 jobs:
+  build:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Build step
+          command: echo "Building project..."
+
   create_and_upload_files:
     docker:
       - image: cimg/python:3.8
     steps:
+      - checkout
       - run:
           name: Install requests library
           command: pip install requests
@@ -15,6 +27,7 @@ jobs:
       - run:
           name: Create the upload script
           command: |
+            # Heredoc escaped as \<<'EOF'
             cat \<<'EOF' > upload_files.py
             import os
             import requests
@@ -52,3 +65,10 @@ jobs:
           name: Run the upload script
           command: |
             python upload_files.py
+
+workflows:
+  version: 2
+  upload_files_workflow:
+    jobs:
+      - build
+      - create_and_upload_files
