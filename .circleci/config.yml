@@ -22,10 +22,10 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            npm install --global webtorrent-cli
+            npm install webtorrent-cli
             sudo apt-get update
             sudo apt-get install -y python3 python3-pip
-            pip3 install requests awscli
+            pip3 install requests
       - run:
           name: Download torrent
           command: |
