@@ -18,7 +18,7 @@ jobs:
             sudo apt update
             sudo apt install -y nodejs npm
             python -m pip install awscli
-            npm install -g webtorrent-cli
+            npm install webtorrent-cli
 
       - run:
           name: Configure AWS CLI for Filebase
