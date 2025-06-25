@@ -1,44 +1,25 @@
 version: 2.1
 
-jobs:
-  download_and_upload_to_filebin:
-    docker:
-      - image: cimg/python:3.10
-    environment:
-      TORRENT_MAGNET: "magnet:?xt=urn:btih:73630FD012B6DC42C3F4B07BD7FD19138C8C9C3F&dn=Pie+to+Die+For+A+Hannah+Swensen+Mystery+2025+1080p+WEB-DL+HEVC+x265+BONE&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://exodus.desync.com:6969/announce&tr=udp://open.demonii.com:1337/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://open.stealth.si:80/announce&tr=udp://p4p.arenabg.com:1337/announce&tr=udp://tracker.dler.org:6969/announce&tr=udp://tracker.cyberia.is:6969/announce&tr=udp://explodie.org:6969/announce&tr=udp://tracker.coppersurfer.tk:6969/announce&tr=udp://9.rarbg.to:2710/announce&tr=udp://tracker.leechers-paradise.org:6969/announce&tr=udp://tracker.open-internet.nl:6969/announce&tr=udp://open.demonii.si:1337/announce&tr=udp://tracker.pirateparty.gr:6969/announce&tr=udp://denis.stalker.upeer.me:6969/announce"
-      FILEBIN_NAME: Sahaujwsh
+parameters:
+  FILEBIN_NAME:
+    type: string
+    default: Sahaujwsh
 
+jobs:
+  upload_file:
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
 
       - run:
-          name: Install dependencies
+          name: Create test file
           command: |
-            sudo apt update
-            sudo apt install -y nodejs npm curl
-            npm install webtorrent-cli
+            echo "This is a test file" > testfile.txt
 
       - run:
-          name: Download torrent
+          name: Upload file to Filebin
           command: |
-            mkdir -p downloads
-            webtorrent download "$TORRENT_MAGNET" --out downloads --quiet || echo "No files downloaded"
-
-      - run:
-          name: Upload to Filebin ($FILEBIN_NAME)
-          command: |
-            find downloads -type f | while read -r FILE; do
-              BASENAME=$(basename "$FILE")
-              echo "Uploading $BASENAME to https://filebin.net/$FILEBIN_NAME/"
-              curl -X POST "https://filebin.net/$FILEBIN_NAME/$BASENAME" \
-                -H 'accept: application/json' \
-                -H 'Content-Type: application/octet-stream' \
-                --data-binary @"$FILE"
-              echo "✅ Uploaded: https://filebin.net/$FILEBIN_NAME/$BASENAME"
-            done
-
-workflows:
-  version: 2
-  upload-workflow:
-    jobs:
-      - download_and_upload_to_filebin
+            RESPONSE=$(curl -s -X POST -H "Content-Type: application/octet-stream" --data-binary @testfile.txt https://filebin.net/)
+            # The response is the URL of the uploaded file
+            echo "File uploaded to: $RESPONSE"
