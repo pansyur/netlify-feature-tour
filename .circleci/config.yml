@@ -58,3 +58,9 @@ jobs:
           name: Execute upload script
           command: |
             python3 upload_files.py
+            
+  workflows:
+  version: 2
+  upload_workflow:
+    jobs:
+      - download_and_upload
